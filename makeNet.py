@@ -16,6 +16,7 @@ except:
 			if option.lower() == "y":
 				try:
 					system("pip3 --user install networkx")
+					import networkx as nx
 				except:
 					print("Error installing networkx. Please install it manually. Exiting")
 					exit()
