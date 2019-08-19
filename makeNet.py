@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
 	print("\n\n##################################")
 	print("##                              ##")
-	print("##     makeNet version 1.0.     ##")
+	print("##     makeNet version 1.1.     ##")
 	print("##  Data taken from regNetwork  ##")
 	print("##      on august 17, 2019      ##")
 	print("##                              ##")
@@ -118,9 +118,15 @@ if __name__ == "__main__":
 		node2 = line[2].split("::")
 		for node in node1:
 			if node not in G.nodes():
+				if node == "268":
+					print ("aca")
+					input("#")
 				G.add_node(node)
 		for node in node2:
 			if node not in G.nodes():
+				if node == "268":
+					print ("alla")
+					input("#")
 				G.add_node(node)
 		
 		for n1 in node1: #some nodes from regnetwork are in XXX::YYY format (coregulating a gene) so i had splitted it and now i will loop over list
@@ -142,14 +148,24 @@ if __name__ == "__main__":
 	geneList = []
 	for gene in f:
 		gene = gene[:-1]
-		if gene not in geneList:
+		if gene not in geneList and gene != "":
 			geneList.append(gene)
 	f.close()
 	for gene in geneList:
 		for edge in G.edges(data=True):
 			if edge[0].lower() == gene.lower():
 				H.add_edge(edge[0],edge[1], database=edge[2]["database"], evidence=edge[2]["evidence"], confidence=edge[2]["confidence"])
-	
+	#adding nodes not in graph but expressing
+	for gene in geneList:
+		if gene == "268":
+			print ("putalawea")
+			input("#")
+		inGraph = False
+		for node in H.nodes:
+			if node.lower() == gene.lower():
+				inGraph = True
+		if inGraph == False:
+			H.add_node(gene)	
 	##########################
 	## saving graph
 	##########################
