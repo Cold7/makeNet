@@ -56,9 +56,9 @@ if __name__ == "__main__":
 
 	print("\n\n##################################")
 	print("##                              ##")
-	print("##     makeNet version 1.1.     ##")
+	print("##     makeNet version 2.0.     ##")
 	print("##  Data taken from regNetwork  ##")
-	print("##      on august 17, 2019      ##")
+	print("##       on March 31, 2020      ##")
 	print("##                              ##")
 	print("##          Created by          ##")
 	print("## Sebastian Contreras-Riquelme ##")
