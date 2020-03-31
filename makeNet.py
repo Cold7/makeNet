@@ -79,8 +79,6 @@ if __name__ == "__main__":
 	parser.add_argument("-c", "--confidence", help="Confidence to use. Default: All", default="All", choices=["All", "High", "Medium", "Low"])
 	parser.add_argument("-t", "--tfList", help="File with TF list.", required=True)
 	parser.add_argument("-O","--output", help="Output file to save results", required=True)
-	parser.add_argument("-g", "--graphType", help="Graph type. Options are MultiDiGraph to save all edges or DiGraph where only interaction exist or not, loosing attributes. Default: MultiDiGraph", default="MultiDiGraph", choices=["MultiDiGraph","DiGraph"])
-	parser.add_argument("-f", "--format", help="Output format. Default: GML", default="GML", choices=["edge_list","GEXF", "GML", "Pickle", "GraphML", "YAML", "Pajek"])
 	
 	args = parser.parse_args()
 
@@ -137,7 +135,6 @@ if __name__ == "__main__":
 	##########################
 	## filtering by gene list
 	##########################
-	H = nx.MultiDiGraph()
 	f = open(args.tfList,"r")
 	geneList = []
 	for gene in f:
@@ -145,28 +142,40 @@ if __name__ == "__main__":
 		if gene not in geneList and gene != "":
 			geneList.append(gene)
 	f.close()
-	for gene in geneList:
-		for edge in G.edges(data=True):
-			if edge[0].lower() == gene.lower():
-				H.add_edge(edge[0],edge[1], database=edge[2]["database"], evidence=edge[2]["evidence"], confidence=edge[2]["confidence"])
-	#adding nodes not in graph but expressing
-	for gene in geneList:
-		inGraph = False
-		for node in H.nodes:
-			if node.lower() == gene.lower():
-				inGraph = True
-		if inGraph == False:
-			H.add_node(gene)	
+
+	#getting TFs in G using outdegree
+	tfList = []
+	for node in G.nodes():
+		if G.out_degree(node)>0:
+			tfList.append(node)
+	
+	edgesToDel = []
+	for tf in tfList:
+		flag = False
+		for gene in geneList:
+			if gene == tf:
+				flag = True
+		
+		if flag == False: #tf not in the sample
+			neigh = G.neighbors(tf)
+			for n in neigh:
+				edgesToDel.append([tf, n])
+	
+	for edges in edgesToDel:
+		G.remove_edge(edges[0],edges[1])
+
 	##########################
 	## saving graph
 	##########################
-	if args.graphType == "DiGraph":
-		I = nx.DiGraph()
-		for edge in H.edges():
-			I.add_edge(edge[0],edge[1])
-		save(I, args.format, args.output)	
-	else:
-		save(H, args.format, args.output)
+	#creating digraph to remove multiple edges between two nodes in order to save the final graph
+	H = nx.DiGraph()
+	for edges in G.edges():
+		H.add_edge(edges[0],edges[1])
+
+	output = open(args.output,"w")
+	for edges in H.edges():
+		output.write(edges[0]+"\t"+edges[1]+"\t1\n")
+	output.close()
 		
 	done()
 	
