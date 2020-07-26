@@ -29,34 +29,13 @@ def done():
 	print ("Done (Date: "+str(time.strftime("%y/%m/%d"))+" Time: "+str(time.strftime("%H:%M:%S"))+")")
 	exit()
 
-#to save graph
-def save(G, Format, outFile):
-	if Format == "edge_list":
-		nx.write_edgelist(G, outFile)
-	elif Format == "GEXF":
-		nx.write_gexf(G, outFile)
-	elif Format == "GML":
-		nx.write_gml(G, outFile)
-	elif Format == "Pickle":
-		nx.write_gpickle(G, outFile)
-	elif Format == "GraphML":
-		nx.write_graphml(G, outFile)
-	elif Format == "YAML":
-		nx.write_yaml(G, outFile)
-	elif Format == "Pajek":
-		nx.write_pajek(G, outFile)
-	else:
-		print("Your format selection can not be processed. Exiting")
-		done()
-
-	return
 	
 if __name__ == "__main__":
 
 
 	print("\n\n##################################")
 	print("##                              ##")
-	print("##     makeNet version 2.0.     ##")
+	print("##     makeNet version 3.0.     ##")
 	print("##  Data taken from regNetwork  ##")
 	print("##       on March 31, 2020      ##")
 	print("##                              ##")
@@ -137,14 +116,23 @@ if __name__ == "__main__":
 	##########################
 	f = open(args.tfList,"r")
 	geneList = []
+	geneCount = {}
 	for gene in f:
-		gene = gene[:-1]
+		aux = gene[:-1].split("\t")
+		gene = aux[0]
+		count = float(aux[1])
+		if gene.upper() not in geneCount:
+			geneCount[gene.upper()] = count
+		else:
+			geneCount[gene.upper()] += count
+			
 		if gene not in geneList and gene != "":
 			geneList.append(gene)
 	f.close()
 
 	#getting TFs in G using outdegree
 	tfList = []
+	
 	for node in G.nodes():
 		if G.out_degree(node)>0:
 			tfList.append(node)
@@ -153,10 +141,10 @@ if __name__ == "__main__":
 	for tf in tfList:
 		flag = False
 		for gene in geneList:
-			if gene == tf:
+			if gene.upper() == tf.upper():
 				flag = True
-		
 		if flag == False: #tf not in the sample
+			
 			neigh = G.neighbors(tf)
 			for n in neigh:
 				edgesToDel.append([tf, n])
@@ -168,13 +156,21 @@ if __name__ == "__main__":
 	## saving graph
 	##########################
 	#creating digraph to remove multiple edges between two nodes in order to save the final graph
+	
 	H = nx.DiGraph()
 	for edges in G.edges():
 		H.add_edge(edges[0],edges[1])
-
+	
+	#adding count to nodes
+	for node in H.nodes:
+		try:
+			H.nodes[node]["weight"] = str(geneCount[node.upper()])
+		except:
+			H.nodes[node]["weight"] = "0"
 	output = open(args.output,"w")
 	for edges in H.edges():
-		output.write(edges[0]+"\t"+edges[1]+"\t1\n")
+		if H.nodes[edges[0]]["weight"] != "0" :# I do not why in some cases networkx is not deleting edges for non-expressing TF, so this is a basic solution
+			output.write(edges[0]+"\t"+H.nodes[edges[0]]["weight"]+"\t"+edges[1]+"\t"+H.nodes[edges[1]]["weight"]+"\n")
 	output.close()
 		
 	done()
