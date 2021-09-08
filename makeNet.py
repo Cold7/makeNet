@@ -3,6 +3,7 @@
 import argparse
 import time
 from os import system
+import os
 import sys 
 try:
 	import networkx as nx
@@ -72,11 +73,13 @@ if __name__ == "__main__":
 	print("\n")
 	
 	#getting net name
-	netName = ""
+	netName = os.getcwdb().decode('utf8')
+	if "makeNet" not in netName:
+		netName += "/makeNet"
 	if args.organism.lower() == "human":
-		netName = "./dat/human_all_regnetwork.csv"
+		netName += "/dat/human_all_regnetwork.csv"
 	elif args.organism.lower() == "mouse":
-		netName = "./dat/mouse_all_regnetwork.csv"
+		netName += "/dat/mouse_all_regnetwork.csv"
 	else:
 		print("Your organism currently is not supported. Exiting")
 		done()
@@ -120,7 +123,7 @@ if __name__ == "__main__":
 	for gene in f:
 		aux = gene[:-1].split("\t")
 		gene = aux[0]
-		count = float(aux[1])
+		count = 1
 		if gene.upper() not in geneCount:
 			geneCount[gene.upper()] = count
 		else:
@@ -170,7 +173,7 @@ if __name__ == "__main__":
 	output = open(args.output,"w")
 	for edges in H.edges():
 		if H.nodes[edges[0]]["weight"] != "0" :# I do not why in some cases networkx is not deleting edges for non-expressing TF, so this is a basic solution
-			output.write(edges[0]+"\t"+H.nodes[edges[0]]["weight"]+"\t"+edges[1]+"\t"+H.nodes[edges[1]]["weight"]+"\n")
+			output.write(edges[0]+"\t"+edges[1]+"\t1\n")
 	output.close()
 		
 	done()
